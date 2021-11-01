@@ -4,6 +4,7 @@ import abc
 
 """
     情境1: 測試沒有遵循 DRY
+    情境1 - 重構: 將重複的地方抽出, 並讓相關測試類去繼承
 """
 
 
@@ -43,10 +44,23 @@ class ConfigurationManager:
 
 # 以下為測試程式碼
 
+class BaseTestsClass:
+    """基底類別供測試使用"""
 
-class TestAnalyzer:
-    def test_analyzer_filenameTooShort_logCalled(self, mocker):
+    def fake_logger(self, mocker):
+        """
+        不是所有測試方法都會用到 LoggingFacility, 所以讓他們各自使用
+        """
         logger = mocker.patch('test_ApiExample1.ILogger')  # 模擬物件
+        return logger
+
+    def teardown_method(self):
+        LoggingFacility.set_logger(None)
+
+
+class TestAnalyzer(BaseTestsClass):
+    def test_analyzer_filenameTooShort_logCalled(self, mocker):
+        logger = super().fake_logger(mocker)
         mocker_method = mocker.patch.object(logger, 'log')
         LoggingFacility.set_logger(logger)
 
@@ -55,13 +69,10 @@ class TestAnalyzer:
 
         assert mocker_method.called == True
 
-    def teardown_method(self):
-        LoggingFacility.set_logger(None)
 
-
-class TestConfigurationManager:
+class TestConfigurationManager(BaseTestsClass):
     def test_configured_logCalled(self, mocker):
-        logger = mocker.patch('test_ApiExample1.ILogger')  # 模擬物件
+        logger = super().fake_logger(mocker)
         mocker_method = mocker.patch.object(logger, 'log')
         LoggingFacility.set_logger(logger)
 
@@ -69,6 +80,3 @@ class TestConfigurationManager:
         manager.configured('api1.json')
 
         assert mocker_method.called == True
-
-    def teardown_method(self):
-        LoggingFacility.set_logger(None)
