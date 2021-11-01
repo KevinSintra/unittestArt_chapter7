@@ -61,7 +61,7 @@ class TestAnalyzer:
 
 class TestConfigurationManager:
     def test_configured_logCalled(self, mocker):
-        logger = mocker.patch('test_ApiExample1.ILogger') # 模擬物件
+        logger = mocker.patch('test_ApiExample1.ILogger')  # 模擬物件
         mocker_method = mocker.patch.object(logger, 'log')
         LoggingFacility.set_logger(logger)
 
@@ -69,3 +69,6 @@ class TestConfigurationManager:
         manager.configured('api1.json')
 
         assert mocker_method.called == True
+
+    def teardown_method(self):
+        LoggingFacility.set_logger(None)
